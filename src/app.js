@@ -1,8 +1,13 @@
 const express = require('express')
 const app = express();
 require('dotenv').config();
+const cors = require('cors');
+const applyMiddleware = require('./middlewares/appliedMiddleware');
 const port = process.env.PORT || 5000;
 
+
+// middleware
+applyMiddleware(app)
 
 
 // check route || basic route
