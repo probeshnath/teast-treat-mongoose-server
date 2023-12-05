@@ -1,38 +1,40 @@
-const express = require('express')
+const express = require("express");
+const applyMiddleware = require("./middlewares");
+const globalErrorHandler = require("./utils/globalErrorHandler");
+const connectDB = require("./db/connectDB");
+
+require("dotenv").config();
 const app = express();
-require('dotenv').config();
-const cors = require('cors');
-const applyMiddleware = require('./middlewares/appliedMiddleware');
 const port = process.env.PORT || 5000;
+const authRoutes = require('./routes/v1/authentication');
+const serviceRoutes = require('./routes/v1/services');
 
+applyMiddleware(app);
 
-// middleware
-applyMiddleware(app)
-
-
-// check route || basic route
+app.use(authRoutes)
+app.use(serviceRoutes)
 app.get("/health", (req, res) => {
-    res.send("Hi this is home get API")
-})
+  res.send("doctor is running....");
+});
 
-//   
+// handling all (get,post,update,delete.....) unhandled routes
 app.all("*", (req, res, next) => {
-    // res.send("sorry this is not right url")
-    // console.log(req.url)
-    const error = new Error(`The requested url is invalid: ${req.url}`)
-    error.status = 404
-    next(error)
-})
+  const error = new Error(`Can't find ${req.originalUrl} on the server`);
+  error.status = 404;
+  next(error);
+});
 
-app.use((err, req, res, next) => {
-    console.log("from line 19")
-    res.status(err.status || 500).json({
-        message: err.message
-    })
-})
+// error handling middleware
+app.use(globalErrorHandler);
 
 
-//   listen and start on localhost the server
-app.listen(port, () => {
-    console.log(`localhost connect on ${port}`)
-})
+const main=async ()=>{
+    await connectDB()
+    app.listen(port, () => {
+        console.log(`Car Doctor Server is running on port ${port}`);
+    });
+   
+}
+
+
+main()
